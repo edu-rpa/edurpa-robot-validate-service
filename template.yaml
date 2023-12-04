@@ -61,12 +61,49 @@ Resources:
           Statement:
             - Effect: "Allow"
               Action:
+                - "iam:PassRole"
+                - "ecs:RunTask"
+                - "ecs:StopTask"
+                - s3:GetObject
+                - s3:PutObject
+              Resource: "*"
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./run
+      DockerTag: python3.9-v1
+
+  RPAStopFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Events:
+        RPAStop:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /stop
+            Method: post
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "iam:PassRole"
                 - "ecs:RunTask"
                 - "ecs:StopTask"
               Resource: "*"
     Metadata:
       Dockerfile: Dockerfile
-      DockerContext: ./run
+      DockerContext: ./stop
       DockerTag: python3.9-v1
 
 Outputs:
@@ -91,3 +128,12 @@ Outputs:
   RPARunFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
     Value: !GetAtt RPARunFunctionRole.Arn
+  RPAStopApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/run/"
+  RPAStopFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt RPAStopFunction.Arn
+  RPAStopFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt RPAStopFunctionRole.Arn
