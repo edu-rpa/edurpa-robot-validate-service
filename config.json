@@ -1,0 +1,7 @@
+{
+    "MYSQL_USERNAME": "robot",
+    "MYSQL_PASSWORD": "z7CJ1/sV38;dwi\"NZMaY",
+    "MYSQL_HOST": "edu-rpa-db-dev.cahnyqo389dg.ap-southeast-2.rds.amazonaws.com",
+    "MYSQL_PORT": 3306,
+    "MYSQL_DATABASE": "core"
+}
