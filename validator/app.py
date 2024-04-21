@@ -6,26 +6,8 @@ import json
 import os
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
-
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
-
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
+    print(event)
+    
     if event["body"]:
         data=json.loads(event["body"])
     else:
@@ -40,11 +22,12 @@ def lambda_handler(event, context):
     xml_file_path = f'{outputdir}output.xml'
     
     os.environ["UUID_STREAM"] = ""
-    parse_robot_result(xml_file_path,'','')
+    res = parse_robot_result(xml_file_path,'','')
 
     response = {
         "statusCode": 200,
-        "result": parse_robot_result(xml_file_path,'',''),
+        "headers": {'Content-Type': 'application/json'},
+        "body": json.dumps(res),
     }
 
     return response
