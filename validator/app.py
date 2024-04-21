@@ -1,4 +1,6 @@
 from robot.api import TestSuite
+from robot import run
+from upload_run import parse_robot_result
 import xml.etree.ElementTree as ET
 import json
 import os
@@ -24,30 +26,25 @@ def lambda_handler(event, context):
 
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
-    MYSQL_USERNAME = os.environ.get('AWSMYSQL_USERNAME_S3_REGION')
-    print(MYSQL_USERNAME)
     if event["body"]:
         data=json.loads(event["body"])
     else:
         data=event
     # Dry run test from dict
-    robot = TestSuite().from_dict(data)
+    robot = TestSuite(rpa=True).from_dict(data)
     outputdir = f'/tmp/validator/{context.aws_request_id}/'
     try:
-        robot.run(outputdir = outputdir, dry_run=True)
-    except:
-        pass
+        robot.run(outputdir = outputdir, dryrun=True)
+    except Exception as e:
+        print(e)
     xml_file_path = f'{outputdir}output.xml'
+    
+    os.environ["UUID_STREAM"] = ""
+    parse_robot_result(xml_file_path,'','')
 
-    # Parse the XML file
-    tree = ET.parse(xml_file_path)
-    root = tree.getroot()
-    xml_string = ET.tostring(root, encoding='unicode')
-    print(xml_string)
     response = {
         "statusCode": 200,
-        "headers": { 'Content-Type': 'text/xml' },
-        "body": xml_string,
+        "result": parse_robot_result(xml_file_path,'',''),
     }
 
     return response

@@ -4,9 +4,10 @@ version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "robot"
+stack_name = "robot-validator"
 
 [default.build.parameters]
+cached = true
 parallel = true
 
 [default.validate.parameters]
@@ -16,7 +17,10 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-resolve_image_repos = true
+stack_name = "edu-rpa-robot-validate"
+s3_prefix = "edu-rpa-robot-validate"
+region = "ap-southeast-1"
+image_repositories = ["RPAValidatorFunction=678601387840.dkr.ecr.ap-southeast-1.amazonaws.com/edurparobotvalidatec7c5d58b/rpavalidatorfunctioncbcacd2frepo"]
 
 [default.package.parameters]
 resolve_s3 = true

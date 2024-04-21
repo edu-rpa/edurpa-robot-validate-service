@@ -1,139 +1,45 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  python3.9
-
   Sample SAM Template for robot
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 30
     MemorySize: 1024
-    Environment:
-      Variables:
-        MYSQL_USERNAME: ${file(./config.json):MYSQL_USERNAME}
-        MYSQL_PASSWORD: ${file(./config.json):MYSQL_PASSWORD}
-        MYSQL_HOST: ${file(./config.json):MYSQL_HOST}
-        MYSQL_PORT: ${file(./config.json):MYSQL_PORT}
-        MYSQL_DATABASE: ${file(./config.json):MYSQL_DATABASE}
 
 Resources:
-  RPAValidatorFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  RobotHttpApi:
+    Type: AWS::Serverless::HttpApi
     Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowOrigins:
+          - "*"
+
+  RPAValidatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./validator/
       PackageType: Image
       Architectures:
         - x86_64
       Events:
-        RPAValidator:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        HttpPost:
+          Type: HttpApi
           Properties:
-            Path: /validate
-            Method: post
+            Path: /robot/dryrun
+            Method: POST
+            ApiId: !Ref RobotHttpApi
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./validator
-      DockerTag: python3.9-v1
-
-  RPARunFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      PackageType: Image
-      Architectures:
-        - x86_64
-      Events:
-        RPARun:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /run
-            Method: post
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action: "sts:AssumeRole"
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Action:
-                - "iam:PassRole"
-                - "ecs:RunTask"
-                - "ecs:StopTask"
-                - s3:GetObject
-                - s3:PutObject
-              Resource: "*"
-    Metadata:
-      Dockerfile: Dockerfile
-      DockerContext: ./run
-      DockerTag: python3.9-v1
-
-  RPAStopFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      PackageType: Image
-      Architectures:
-        - x86_64
-      Events:
-        RPAStop:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /stop
-            Method: post
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action: "sts:AssumeRole"
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Action:
-                - "iam:PassRole"
-                - "ecs:RunTask"
-                - "ecs:StopTask"
-              Resource: "*"
-    Metadata:
-      Dockerfile: Dockerfile
-      DockerContext: ./stop
-      DockerTag: python3.9-v1
+      DockerTag: python3.9-validator
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  RPAValidatorApi:
-    Description: "samAPI Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/validate/"
-  RPAValidatorFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt RPAValidatorFunction.Arn
-  RPAValidatorFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt RPAValidatorFunctionRole.Arn
-  RPARunApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/run/"
-  RPARunFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt RPARunFunction.Arn
-  RPARunFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt RPARunFunctionRole.Arn
-  RPAStopApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/run/"
-  RPAStopFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt RPAStopFunction.Arn
-  RPAStopFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt RPAStopFunctionRole.Arn
+  RobotHttpApi:
+    Description: Serverless HTTP API (API Gateway endpoint URL)
+    Value: !Sub "https://${RobotHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

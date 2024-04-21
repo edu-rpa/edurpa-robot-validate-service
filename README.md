@@ -1,3 +1,3 @@
 # CMD
-sam build
+source build_script.sh
 sam deploy (--guided for first time) 

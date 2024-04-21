@@ -1,3 +1,5 @@
 robotframework
 rpaframework
-vietocr
+rpaframework-google
+EduRPA
+edurpa_google
