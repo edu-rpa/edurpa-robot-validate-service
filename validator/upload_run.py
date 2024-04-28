@@ -77,7 +77,7 @@ class MyResultVisitor(ResultVisitor):
             "messages": str(kw.messages[0] if len(kw.messages) else "")
         })
 
-def parse(output_xml_path, user_id, process_id_version, table_name="robot"): 
+def parse(output_xml_path, user_id, process_id_version, table_name="robot-run"): 
     Item = parse_robot_result(output_xml_path, user_id, process_id_version)
     update_robot_run(Item)
 
@@ -110,7 +110,6 @@ def parse_robot_result(output_xml_path, user_id, process_id_version):
     # Get the serialize object
     result.visit(visitor)
     kw_run = visitor.kw_run
-
     return {
         "userId" : user_id,
         "processIdVersion": process_id_version,
@@ -123,10 +122,10 @@ def parse_robot_result(output_xml_path, user_id, process_id_version):
         "time_result": time_result
     }
     
-def update_robot_run(Item, table_name="robot") :
-    dynamodb = boto3.resource('dynamodb')
-    table_name = 'robot'
+def update_robot_run(Item, table_name="robot-run") :
+    dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-1')
     table = dynamodb.Table(table_name)
+    print(Item)
     try:
         table.put_item(Item = Item)
     except Exception as err:

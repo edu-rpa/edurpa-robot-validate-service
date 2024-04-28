@@ -1,5 +1,3 @@
 robotframework
 rpaframework
 rpaframework-google
-EduRPA
-edurpa_google
