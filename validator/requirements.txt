@@ -1,3 +1,7 @@
 robotframework
 rpaframework
 rpaframework-google
+vietocr
+opencv-python
+editdistance
+Pillow==9.5.0
